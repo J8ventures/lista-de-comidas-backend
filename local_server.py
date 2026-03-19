@@ -19,9 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/", ingredients_app)
-app.mount("/", recipes_app)
-app.mount("/", meal_plans_app)
+app.include_router(ingredients_app.router)
+app.include_router(recipes_app.router)
+app.include_router(meal_plans_app.router)
 
 if __name__ == "__main__":
     import uvicorn
