@@ -5,44 +5,44 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Query
 from mangum import Mangum
-from models.types import IngredientCreate, IngredientUpdate
+from models.types import IngredienteCrear, IngredienteActualizar
 from services.ingredients_service import IngredientsService
 
-app = FastAPI(title="Ingredients API")
+app = FastAPI(title="Ingredientes API")
 service = IngredientsService()
 
 
-@app.get("/api/v1/ingredients")
-def list_ingredients(nutritional_group: Optional[str] = Query(None)):
-    return service.list_ingredients(nutritional_group)
+@app.get("/api/v1/ingredientes")
+def listar_ingredientes(grupo_nutricional: Optional[str] = Query(None)):
+    return service.list_ingredients(grupo_nutricional)
 
 
-@app.post("/api/v1/ingredients", status_code=201)
-def create_ingredient(body: IngredientCreate):
+@app.post("/api/v1/ingredientes", status_code=201)
+def crear_ingrediente(body: IngredienteCrear):
     return service.create_ingredient(body.model_dump())
 
 
-@app.get("/api/v1/ingredients/{ingredient_id}")
-def get_ingredient(ingredient_id: str):
-    item = service.get_ingredient(ingredient_id)
+@app.get("/api/v1/ingredientes/{id_ingrediente}")
+def obtener_ingrediente(id_ingrediente: str):
+    item = service.get_ingredient(id_ingrediente)
     if not item:
-        raise HTTPException(status_code=404, detail="Ingredient not found")
+        raise HTTPException(status_code=404, detail="Ingrediente no encontrado")
     return item
 
 
-@app.put("/api/v1/ingredients/{ingredient_id}")
-def update_ingredient(ingredient_id: str, body: IngredientUpdate):
+@app.put("/api/v1/ingredientes/{id_ingrediente}")
+def actualizar_ingrediente(id_ingrediente: str, body: IngredienteActualizar):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
-    item = service.update_ingredient(ingredient_id, data)
+    item = service.update_ingredient(id_ingrediente, data)
     if not item:
-        raise HTTPException(status_code=404, detail="Ingredient not found")
+        raise HTTPException(status_code=404, detail="Ingrediente no encontrado")
     return item
 
 
-@app.delete("/api/v1/ingredients/{ingredient_id}", status_code=204)
-def delete_ingredient(ingredient_id: str):
-    if not service.delete_ingredient(ingredient_id):
-        raise HTTPException(status_code=404, detail="Ingredient not found")
+@app.delete("/api/v1/ingredientes/{id_ingrediente}", status_code=204)
+def eliminar_ingrediente(id_ingrediente: str):
+    if not service.delete_ingredient(id_ingrediente):
+        raise HTTPException(status_code=404, detail="Ingrediente no encontrado")
 
 
 handler = Mangum(app, lifespan="off")

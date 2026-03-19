@@ -3,74 +3,74 @@ from datetime import datetime
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
-NutritionalGroup = Literal['PROTEINS', 'CARBOHYDRATES', 'VEGETABLES', 'FRUITS', 'DAIRY', 'FATS', 'LEGUMES', 'GRAINS', 'OTHER']
-IngredientRole = Literal['required', 'replaceable', 'optional']
-MealType = Literal['breakfast', 'lunch', 'dinner', 'snack']
-PlanType = Literal['weekly', 'biweekly']
+GrupoNutricional = Literal['PROTEINAS', 'CARBOHIDRATOS', 'VERDURAS', 'FRUTAS', 'LACTEOS', 'GRASAS', 'LEGUMBRES', 'CEREALES', 'OTRO']
+RolIngrediente = Literal['requerido', 'reemplazable', 'opcional']
+TipoComida = Literal['desayuno', 'almuerzo', 'cena', 'merienda']
+TipoPlan = Literal['semanal', 'quincenal']
 
 
-# Pydantic models for API request/response validation
-class AlternativeModel(BaseModel):
-    ingredient_id: str
-    quantity: float
-    unit: str
+# Modelos Pydantic para validación de request/response
+class AlternativaModelo(BaseModel):
+    id_ingrediente: str
+    cantidad: float
+    unidad: str
 
 
-class RecipeIngredientModel(BaseModel):
-    ingredient_id: str
-    role: IngredientRole
-    quantity: float
-    unit: str
-    alternatives: list[AlternativeModel] = Field(default_factory=list)
+class IngredienteRecetaModelo(BaseModel):
+    id_ingrediente: str
+    rol: RolIngrediente
+    cantidad: float
+    unidad: str
+    alternativas: list[AlternativaModelo] = Field(default_factory=list)
 
 
-class IngredientCreate(BaseModel):
-    name: str
-    nutritional_group: NutritionalGroup
-    unit: str
+class IngredienteCrear(BaseModel):
+    nombre: str
+    grupo_nutricional: GrupoNutricional
+    unidad: str
 
 
-class IngredientUpdate(BaseModel):
-    name: Optional[str] = None
-    nutritional_group: Optional[NutritionalGroup] = None
-    unit: Optional[str] = None
+class IngredienteActualizar(BaseModel):
+    nombre: Optional[str] = None
+    grupo_nutricional: Optional[GrupoNutricional] = None
+    unidad: Optional[str] = None
 
 
-class RecipeCreate(BaseModel):
-    name: str
-    description: str = ""
-    servings: int = 1
-    prep_time: int = 0  # minutes
-    cook_time: int = 0  # minutes
-    ingredients: list[RecipeIngredientModel] = Field(default_factory=list)
+class RecetaCrear(BaseModel):
+    nombre: str
+    descripcion: str = ""
+    porciones: int = 1
+    tiempo_preparacion: int = 0  # minutos
+    tiempo_coccion: int = 0  # minutos
+    ingredientes: list[IngredienteRecetaModelo] = Field(default_factory=list)
 
 
-class RecipeUpdate(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    servings: Optional[int] = None
-    prep_time: Optional[int] = None
-    cook_time: Optional[int] = None
-    ingredients: Optional[list[RecipeIngredientModel]] = None
+class RecetaActualizar(BaseModel):
+    nombre: Optional[str] = None
+    descripcion: Optional[str] = None
+    porciones: Optional[int] = None
+    tiempo_preparacion: Optional[int] = None
+    tiempo_coccion: Optional[int] = None
+    ingredientes: Optional[list[IngredienteRecetaModelo]] = None
 
 
-class MealPlanEntryCreate(BaseModel):
-    date: str  # ISO format YYYY-MM-DD
-    meal_type: MealType
-    recipe_id: str
-    selected_ingredients: dict[str, str] = Field(default_factory=dict)  # replaceable_ingredient_id -> chosen_ingredient_id
+class EntradaPlanCrear(BaseModel):
+    fecha: str  # formato ISO YYYY-MM-DD
+    tipo_comida: TipoComida
+    id_receta: str
+    ingredientes_seleccionados: dict[str, str] = Field(default_factory=dict)  # id_ingrediente_reemplazable -> id_ingrediente_elegido
 
 
-class MealPlanCreate(BaseModel):
-    name: str
-    type: PlanType
-    start_date: str  # ISO format YYYY-MM-DD
-    end_date: str  # ISO format YYYY-MM-DD
-    entries: list[MealPlanEntryCreate] = Field(default_factory=list)
+class PlanComidaCrear(BaseModel):
+    nombre: str
+    tipo: TipoPlan
+    fecha_inicio: str  # formato ISO YYYY-MM-DD
+    fecha_fin: str  # formato ISO YYYY-MM-DD
+    entradas: list[EntradaPlanCrear] = Field(default_factory=list)
 
 
-class MealPlanUpdate(BaseModel):
-    name: Optional[str] = None
-    type: Optional[PlanType] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
+class PlanComidaActualizar(BaseModel):
+    nombre: Optional[str] = None
+    tipo: Optional[TipoPlan] = None
+    fecha_inicio: Optional[str] = None
+    fecha_fin: Optional[str] = None

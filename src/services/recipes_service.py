@@ -7,73 +7,73 @@ class RecipesService:
         self.repo = RecipesRepository()
         self.ingredients_service = IngredientsService()
 
-    def list_recipes(self, ingredient_id: str = None, nutritional_group: str = None) -> list[dict]:
-        if ingredient_id:
-            items = self.repo.get_recipes_by_ingredient(ingredient_id)
-            recipe_ids = list({item['GSI3SK'].replace('RECIPE#', '') for item in items})
-            recipes = [self.repo.get_by_id(rid) for rid in recipe_ids]
-            return [self._format(r) for r in recipes if r]
+    def list_recipes(self, id_ingrediente: str = None, grupo_nutricional: str = None) -> list[dict]:
+        if id_ingrediente:
+            items = self.repo.get_recipes_by_ingredient(id_ingrediente)
+            ids_receta = list({item['GSI3SK'].replace('RECETA#', '') for item in items})
+            recetas = [self.repo.get_by_id(rid) for rid in ids_receta]
+            return [self._format(r) for r in recetas if r]
         return [self._format(item) for item in self.repo.list_all()]
 
-    def get_recipe(self, recipe_id: str, populate: bool = True) -> dict | None:
-        item = self.repo.get_by_id(recipe_id)
+    def get_recipe(self, id_receta: str, populate: bool = True) -> dict | None:
+        item = self.repo.get_by_id(id_receta)
         if not item:
             return None
-        recipe = self._format(item)
+        receta = self._format(item)
         if populate:
-            recipe['ingredients'] = self._get_populated_ingredients(recipe_id)
-        return recipe
+            receta['ingredientes'] = self._get_populated_ingredients(id_receta)
+        return receta
 
     def create_recipe(self, data: dict) -> dict:
-        ingredients = data.pop('ingredients', [])
+        ingredientes = data.pop('ingredientes', [])
         item = self.repo.create(data)
-        recipe_id = item['id']
-        if ingredients:
-            self.repo.set_ingredients(recipe_id, ingredients)
-        recipe = self._format(item)
-        recipe['ingredients'] = self._get_populated_ingredients(recipe_id)
-        return recipe
+        id_receta = item['id']
+        if ingredientes:
+            self.repo.set_ingredients(id_receta, ingredientes)
+        receta = self._format(item)
+        receta['ingredientes'] = self._get_populated_ingredients(id_receta)
+        return receta
 
-    def update_recipe(self, recipe_id: str, data: dict) -> dict | None:
-        ingredients = data.pop('ingredients', None)
-        item = self.repo.update(recipe_id, data)
+    def update_recipe(self, id_receta: str, data: dict) -> dict | None:
+        ingredientes = data.pop('ingredientes', None)
+        item = self.repo.update(id_receta, data)
         if not item:
             return None
-        if ingredients is not None:
-            self.repo.set_ingredients(recipe_id, ingredients)
-        recipe = self._format(item)
-        recipe['ingredients'] = self._get_populated_ingredients(recipe_id)
-        return recipe
+        if ingredientes is not None:
+            self.repo.set_ingredients(id_receta, ingredientes)
+        receta = self._format(item)
+        receta['ingredientes'] = self._get_populated_ingredients(id_receta)
+        return receta
 
-    def delete_recipe(self, recipe_id: str) -> bool:
-        return self.repo.delete(recipe_id)
+    def delete_recipe(self, id_receta: str) -> bool:
+        return self.repo.delete(id_receta)
 
-    def get_recipe_ingredients(self, recipe_id: str) -> list[dict]:
-        return self.repo.get_ingredients(recipe_id)
+    def get_recipe_ingredients(self, id_receta: str) -> list[dict]:
+        return self.repo.get_ingredients(id_receta)
 
-    def _get_populated_ingredients(self, recipe_id: str) -> list[dict]:
-        raw = self.repo.get_ingredients(recipe_id)
-        ingredient_ids = [r['ingredient_id'] for r in raw]
-        alt_ids = [a['ingredient_id'] for r in raw for a in r.get('alternatives', [])]
-        all_ids = list(set(ingredient_ids + alt_ids))
-        ingredients_map = self.ingredients_service.get_batch(all_ids)
+    def _get_populated_ingredients(self, id_receta: str) -> list[dict]:
+        raw = self.repo.get_ingredients(id_receta)
+        ids_ingrediente = [r['id_ingrediente'] for r in raw]
+        ids_alt = [a['id_ingrediente'] for r in raw for a in r.get('alternativas', [])]
+        all_ids = list(set(ids_ingrediente + ids_alt))
+        ingredientes_map = self.ingredients_service.get_batch(all_ids)
 
         result = []
         for r in raw:
             entry = {
-                'ingredient_id': r['ingredient_id'],
-                'ingredient': ingredients_map.get(r['ingredient_id']),
-                'role': r['role'],
-                'quantity': float(r['quantity']),
-                'unit': r['unit'],
-                'alternatives': [
+                'id_ingrediente': r['id_ingrediente'],
+                'ingrediente': ingredientes_map.get(r['id_ingrediente']),
+                'rol': r['rol'],
+                'cantidad': float(r['cantidad']),
+                'unidad': r['unidad'],
+                'alternativas': [
                     {
-                        'ingredient_id': a['ingredient_id'],
-                        'ingredient': ingredients_map.get(a['ingredient_id']),
-                        'quantity': float(a['quantity']),
-                        'unit': a['unit'],
+                        'id_ingrediente': a['id_ingrediente'],
+                        'ingrediente': ingredientes_map.get(a['id_ingrediente']),
+                        'cantidad': float(a['cantidad']),
+                        'unidad': a['unidad'],
                     }
-                    for a in r.get('alternatives', [])
+                    for a in r.get('alternativas', [])
                 ],
             }
             result.append(entry)
@@ -82,11 +82,11 @@ class RecipesService:
     def _format(self, item: dict) -> dict:
         return {
             'id': item['id'],
-            'name': item['name'],
-            'description': item.get('description', ''),
-            'servings': item.get('servings', 1),
-            'prep_time': item.get('prep_time', 0),
-            'cook_time': item.get('cook_time', 0),
-            'created_at': item.get('created_at'),
-            'updated_at': item.get('updated_at'),
+            'nombre': item['nombre'],
+            'descripcion': item.get('descripcion', ''),
+            'porciones': item.get('porciones', 1),
+            'tiempo_preparacion': item.get('tiempo_preparacion', 0),
+            'tiempo_coccion': item.get('tiempo_coccion', 0),
+            'creado_en': item.get('creado_en'),
+            'actualizado_en': item.get('actualizado_en'),
         }

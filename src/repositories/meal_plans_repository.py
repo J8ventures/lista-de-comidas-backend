@@ -8,58 +8,58 @@ class MealPlansRepository(BaseRepository):
     def list_all(self) -> list[dict]:
         response = self.table.query(
             IndexName='GSI1',
-            KeyConditionExpression=Key('GSI1PK').eq('MEALPLAN'),
+            KeyConditionExpression=Key('GSI1PK').eq('PLANCOMIDA'),
         )
         return response.get('Items', [])
 
-    def get_by_id(self, plan_id: str) -> dict | None:
+    def get_by_id(self, id_plan: str) -> dict | None:
         response = self.table.get_item(
-            Key={'PK': f'MEALPLAN#{plan_id}', 'SK': 'METADATA'}
+            Key={'PK': f'PLANCOMIDA#{id_plan}', 'SK': 'METADATA'}
         )
         return response.get('Item')
 
-    def get_entries(self, plan_id: str) -> list[dict]:
+    def get_entries(self, id_plan: str) -> list[dict]:
         response = self.table.query(
-            KeyConditionExpression=Key('PK').eq(f'MEALPLAN#{plan_id}') & Key('SK').begins_with('ENTRY#')
+            KeyConditionExpression=Key('PK').eq(f'PLANCOMIDA#{id_plan}') & Key('SK').begins_with('ENTRADA#')
         )
         return response.get('Items', [])
 
     def create(self, data: dict) -> dict:
-        plan_id = str(uuid.uuid4())
+        id_plan = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
         item = {
-            'PK': f'MEALPLAN#{plan_id}',
+            'PK': f'PLANCOMIDA#{id_plan}',
             'SK': 'METADATA',
-            'GSI1PK': 'MEALPLAN',
+            'GSI1PK': 'PLANCOMIDA',
             'GSI1SK': now,
-            'id': plan_id,
-            'name': data['name'],
-            'type': data['type'],
-            'start_date': data['start_date'],
-            'end_date': data['end_date'],
-            'created_at': now,
-            'updated_at': now,
+            'id': id_plan,
+            'nombre': data['nombre'],
+            'tipo': data['tipo'],
+            'fecha_inicio': data['fecha_inicio'],
+            'fecha_fin': data['fecha_fin'],
+            'creado_en': now,
+            'actualizado_en': now,
         }
         self.table.put_item(Item=item)
         return item
 
-    def update(self, plan_id: str, data: dict) -> dict | None:
-        existing = self.get_by_id(plan_id)
+    def update(self, id_plan: str, data: dict) -> dict | None:
+        existing = self.get_by_id(id_plan)
         if not existing:
             return None
         now = datetime.now(timezone.utc).isoformat()
-        update_expressions = ['#updated_at = :updated_at']
-        expression_values = {':updated_at': now}
-        expression_names = {'#updated_at': 'updated_at'}
+        update_expressions = ['#actualizado_en = :actualizado_en']
+        expression_values = {':actualizado_en': now}
+        expression_names = {'#actualizado_en': 'actualizado_en'}
 
-        for f in ['name', 'type', 'start_date', 'end_date']:
+        for f in ['nombre', 'tipo', 'fecha_inicio', 'fecha_fin']:
             if f in data:
                 update_expressions.append(f'#{f} = :{f}')
                 expression_values[f':{f}'] = data[f]
                 expression_names[f'#{f}'] = f
 
         response = self.table.update_item(
-            Key={'PK': f'MEALPLAN#{plan_id}', 'SK': 'METADATA'},
+            Key={'PK': f'PLANCOMIDA#{id_plan}', 'SK': 'METADATA'},
             UpdateExpression='SET ' + ', '.join(update_expressions),
             ExpressionAttributeValues=expression_values,
             ExpressionAttributeNames=expression_names,
@@ -67,30 +67,30 @@ class MealPlansRepository(BaseRepository):
         )
         return response['Attributes']
 
-    def delete(self, plan_id: str) -> bool:
-        existing = self.get_by_id(plan_id)
+    def delete(self, id_plan: str) -> bool:
+        existing = self.get_by_id(id_plan)
         if not existing:
             return False
-        entries = self.get_entries(plan_id)
+        entradas = self.get_entries(id_plan)
         with self.table.batch_writer() as batch:
-            batch.delete_item(Key={'PK': f'MEALPLAN#{plan_id}', 'SK': 'METADATA'})
-            for entry in entries:
-                batch.delete_item(Key={'PK': entry['PK'], 'SK': entry['SK']})
+            batch.delete_item(Key={'PK': f'PLANCOMIDA#{id_plan}', 'SK': 'METADATA'})
+            for entrada in entradas:
+                batch.delete_item(Key={'PK': entrada['PK'], 'SK': entrada['SK']})
         return True
 
-    def add_entry(self, plan_id: str, entry_data: dict) -> dict:
-        entry_id = str(uuid.uuid4())
+    def add_entry(self, id_plan: str, datos_entrada: dict) -> dict:
+        id_entrada = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
-        sk = f'ENTRY#{entry_data["date"]}#{entry_data["meal_type"]}#{entry_id}'
+        sk = f'ENTRADA#{datos_entrada["fecha"]}#{datos_entrada["tipo_comida"]}#{id_entrada}'
         item = {
-            'PK': f'MEALPLAN#{plan_id}',
+            'PK': f'PLANCOMIDA#{id_plan}',
             'SK': sk,
-            'id': entry_id,
-            'date': entry_data['date'],
-            'meal_type': entry_data['meal_type'],
-            'recipe_id': entry_data['recipe_id'],
-            'selected_ingredients': entry_data.get('selected_ingredients', {}),
-            'created_at': now,
+            'id': id_entrada,
+            'fecha': datos_entrada['fecha'],
+            'tipo_comida': datos_entrada['tipo_comida'],
+            'id_receta': datos_entrada['id_receta'],
+            'ingredientes_seleccionados': datos_entrada.get('ingredientes_seleccionados', {}),
+            'creado_en': now,
         }
         self.table.put_item(Item=item)
         return item

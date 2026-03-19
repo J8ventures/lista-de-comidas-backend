@@ -5,47 +5,47 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Query
 from mangum import Mangum
-from models.types import RecipeCreate, RecipeUpdate
+from models.types import RecetaCrear, RecetaActualizar
 from services.recipes_service import RecipesService
 
-app = FastAPI(title="Recipes API")
+app = FastAPI(title="Recetas API")
 service = RecipesService()
 
 
-@app.get("/api/v1/recipes")
-def list_recipes(
-    ingredient_id: Optional[str] = Query(None),
-    nutritional_group: Optional[str] = Query(None),
+@app.get("/api/v1/recetas")
+def listar_recetas(
+    id_ingrediente: Optional[str] = Query(None),
+    grupo_nutricional: Optional[str] = Query(None),
 ):
-    return service.list_recipes(ingredient_id, nutritional_group)
+    return service.list_recipes(id_ingrediente, grupo_nutricional)
 
 
-@app.post("/api/v1/recipes", status_code=201)
-def create_recipe(body: RecipeCreate):
+@app.post("/api/v1/recetas", status_code=201)
+def crear_receta(body: RecetaCrear):
     return service.create_recipe(body.model_dump())
 
 
-@app.get("/api/v1/recipes/{recipe_id}")
-def get_recipe(recipe_id: str):
-    item = service.get_recipe(recipe_id)
+@app.get("/api/v1/recetas/{id_receta}")
+def obtener_receta(id_receta: str):
+    item = service.get_recipe(id_receta)
     if not item:
-        raise HTTPException(status_code=404, detail="Recipe not found")
+        raise HTTPException(status_code=404, detail="Receta no encontrada")
     return item
 
 
-@app.put("/api/v1/recipes/{recipe_id}")
-def update_recipe(recipe_id: str, body: RecipeUpdate):
+@app.put("/api/v1/recetas/{id_receta}")
+def actualizar_receta(id_receta: str, body: RecetaActualizar):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
-    item = service.update_recipe(recipe_id, data)
+    item = service.update_recipe(id_receta, data)
     if not item:
-        raise HTTPException(status_code=404, detail="Recipe not found")
+        raise HTTPException(status_code=404, detail="Receta no encontrada")
     return item
 
 
-@app.delete("/api/v1/recipes/{recipe_id}", status_code=204)
-def delete_recipe(recipe_id: str):
-    if not service.delete_recipe(recipe_id):
-        raise HTTPException(status_code=404, detail="Recipe not found")
+@app.delete("/api/v1/recetas/{id_receta}", status_code=204)
+def eliminar_receta(id_receta: str):
+    if not service.delete_recipe(id_receta):
+        raise HTTPException(status_code=404, detail="Receta no encontrada")
 
 
 handler = Mangum(app, lifespan="off")

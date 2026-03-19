@@ -8,59 +8,59 @@ class RecipesRepository(BaseRepository):
     def list_all(self) -> list[dict]:
         response = self.table.query(
             IndexName='GSI1',
-            KeyConditionExpression=Key('GSI1PK').eq('RECIPE'),
+            KeyConditionExpression=Key('GSI1PK').eq('RECETA'),
         )
         return response.get('Items', [])
 
-    def get_by_id(self, recipe_id: str) -> dict | None:
+    def get_by_id(self, id_receta: str) -> dict | None:
         response = self.table.get_item(
-            Key={'PK': f'RECIPE#{recipe_id}', 'SK': 'METADATA'}
+            Key={'PK': f'RECETA#{id_receta}', 'SK': 'METADATA'}
         )
         return response.get('Item')
 
-    def get_ingredients(self, recipe_id: str) -> list[dict]:
+    def get_ingredients(self, id_receta: str) -> list[dict]:
         response = self.table.query(
-            KeyConditionExpression=Key('PK').eq(f'RECIPE#{recipe_id}') & Key('SK').begins_with('INGREDIENT#')
+            KeyConditionExpression=Key('PK').eq(f'RECETA#{id_receta}') & Key('SK').begins_with('INGREDIENTE#')
         )
         return response.get('Items', [])
 
-    def get_recipes_by_ingredient(self, ingredient_id: str) -> list[dict]:
+    def get_recipes_by_ingredient(self, id_ingrediente: str) -> list[dict]:
         response = self.table.query(
             IndexName='GSI3',
-            KeyConditionExpression=Key('GSI3PK').eq(f'INGREDIENT#{ingredient_id}'),
+            KeyConditionExpression=Key('GSI3PK').eq(f'INGREDIENTE#{id_ingrediente}'),
         )
         return response.get('Items', [])
 
     def create(self, data: dict) -> dict:
-        recipe_id = str(uuid.uuid4())
+        id_receta = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
         item = {
-            'PK': f'RECIPE#{recipe_id}',
+            'PK': f'RECETA#{id_receta}',
             'SK': 'METADATA',
-            'GSI1PK': 'RECIPE',
+            'GSI1PK': 'RECETA',
             'GSI1SK': now,
-            'id': recipe_id,
-            'name': data['name'],
-            'description': data.get('description', ''),
-            'servings': data.get('servings', 1),
-            'prep_time': data.get('prep_time', 0),
-            'cook_time': data.get('cook_time', 0),
-            'created_at': now,
-            'updated_at': now,
+            'id': id_receta,
+            'nombre': data['nombre'],
+            'descripcion': data.get('descripcion', ''),
+            'porciones': data.get('porciones', 1),
+            'tiempo_preparacion': data.get('tiempo_preparacion', 0),
+            'tiempo_coccion': data.get('tiempo_coccion', 0),
+            'creado_en': now,
+            'actualizado_en': now,
         }
         self.table.put_item(Item=item)
         return item
 
-    def update(self, recipe_id: str, data: dict) -> dict | None:
-        existing = self.get_by_id(recipe_id)
+    def update(self, id_receta: str, data: dict) -> dict | None:
+        existing = self.get_by_id(id_receta)
         if not existing:
             return None
         now = datetime.now(timezone.utc).isoformat()
-        update_expressions = ['#updated_at = :updated_at']
-        expression_values = {':updated_at': now}
-        expression_names = {'#updated_at': 'updated_at'}
+        update_expressions = ['#actualizado_en = :actualizado_en']
+        expression_values = {':actualizado_en': now}
+        expression_names = {'#actualizado_en': 'actualizado_en'}
 
-        fields = ['name', 'description', 'servings', 'prep_time', 'cook_time']
+        fields = ['nombre', 'descripcion', 'porciones', 'tiempo_preparacion', 'tiempo_coccion']
         for f in fields:
             if f in data:
                 update_expressions.append(f'#{f} = :{f}')
@@ -68,7 +68,7 @@ class RecipesRepository(BaseRepository):
                 expression_names[f'#{f}'] = f
 
         response = self.table.update_item(
-            Key={'PK': f'RECIPE#{recipe_id}', 'SK': 'METADATA'},
+            Key={'PK': f'RECETA#{id_receta}', 'SK': 'METADATA'},
             UpdateExpression='SET ' + ', '.join(update_expressions),
             ExpressionAttributeValues=expression_values,
             ExpressionAttributeNames=expression_names,
@@ -76,36 +76,35 @@ class RecipesRepository(BaseRepository):
         )
         return response['Attributes']
 
-    def delete(self, recipe_id: str) -> bool:
-        existing = self.get_by_id(recipe_id)
+    def delete(self, id_receta: str) -> bool:
+        existing = self.get_by_id(id_receta)
         if not existing:
             return False
-        # Delete metadata + all ingredient rows
-        ingredients = self.get_ingredients(recipe_id)
+        ingredientes = self.get_ingredients(id_receta)
         with self.table.batch_writer() as batch:
-            batch.delete_item(Key={'PK': f'RECIPE#{recipe_id}', 'SK': 'METADATA'})
-            for ing in ingredients:
+            batch.delete_item(Key={'PK': f'RECETA#{id_receta}', 'SK': 'METADATA'})
+            for ing in ingredientes:
                 batch.delete_item(Key={'PK': ing['PK'], 'SK': ing['SK']})
         return True
 
-    def set_ingredients(self, recipe_id: str, ingredients: list[dict]):
-        """Replace all recipe ingredients."""
-        existing = self.get_ingredients(recipe_id)
+    def set_ingredients(self, id_receta: str, ingredientes: list[dict]):
+        """Reemplaza todos los ingredientes de una receta."""
+        existing = self.get_ingredients(id_receta)
         now = datetime.now(timezone.utc).isoformat()
         with self.table.batch_writer() as batch:
             for ing in existing:
                 batch.delete_item(Key={'PK': ing['PK'], 'SK': ing['SK']})
-            for ing in ingredients:
+            for ing in ingredientes:
                 item = {
-                    'PK': f'RECIPE#{recipe_id}',
-                    'SK': f'INGREDIENT#{ing["ingredient_id"]}',
-                    'GSI3PK': f'INGREDIENT#{ing["ingredient_id"]}',
-                    'GSI3SK': f'RECIPE#{recipe_id}',
-                    'ingredient_id': ing['ingredient_id'],
-                    'role': ing['role'],
-                    'quantity': str(ing['quantity']),
-                    'unit': ing['unit'],
-                    'alternatives': ing.get('alternatives', []),
-                    'created_at': now,
+                    'PK': f'RECETA#{id_receta}',
+                    'SK': f'INGREDIENTE#{ing["id_ingrediente"]}',
+                    'GSI3PK': f'INGREDIENTE#{ing["id_ingrediente"]}',
+                    'GSI3SK': f'RECETA#{id_receta}',
+                    'id_ingrediente': ing['id_ingrediente'],
+                    'rol': ing['rol'],
+                    'cantidad': str(ing['cantidad']),
+                    'unidad': ing['unidad'],
+                    'alternativas': ing.get('alternativas', []),
+                    'creado_en': now,
                 }
                 batch.put_item(Item=item)

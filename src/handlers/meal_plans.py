@@ -4,71 +4,71 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from fastapi import FastAPI, HTTPException
 from mangum import Mangum
-from models.types import MealPlanCreate, MealPlanUpdate, MealPlanEntryCreate
+from models.types import PlanComidaCrear, PlanComidaActualizar, EntradaPlanCrear
 from services.meal_plans_service import MealPlansService
 
-app = FastAPI(title="Meal Plans API")
+app = FastAPI(title="Planes de Comida API")
 service = MealPlansService()
 
 
-@app.get("/api/v1/meal-plans")
-def list_meal_plans():
+@app.get("/api/v1/planes-comida")
+def listar_planes_comida():
     return service.list_meal_plans()
 
 
-@app.post("/api/v1/meal-plans", status_code=201)
-def create_meal_plan(body: MealPlanCreate):
+@app.post("/api/v1/planes-comida", status_code=201)
+def crear_plan_comida(body: PlanComidaCrear):
     return service.create_meal_plan(body.model_dump())
 
 
-@app.get("/api/v1/meal-plans/{plan_id}")
-def get_meal_plan(plan_id: str):
-    item = service.get_meal_plan(plan_id)
+@app.get("/api/v1/planes-comida/{id_plan}")
+def obtener_plan_comida(id_plan: str):
+    item = service.get_meal_plan(id_plan)
     if not item:
-        raise HTTPException(status_code=404, detail="Meal plan not found")
+        raise HTTPException(status_code=404, detail="Plan de comida no encontrado")
     return item
 
 
-@app.put("/api/v1/meal-plans/{plan_id}")
-def update_meal_plan(plan_id: str, body: MealPlanUpdate):
+@app.put("/api/v1/planes-comida/{id_plan}")
+def actualizar_plan_comida(id_plan: str, body: PlanComidaActualizar):
     data = {k: v for k, v in body.model_dump().items() if v is not None}
-    item = service.update_meal_plan(plan_id, data)
+    item = service.update_meal_plan(id_plan, data)
     if not item:
-        raise HTTPException(status_code=404, detail="Meal plan not found")
+        raise HTTPException(status_code=404, detail="Plan de comida no encontrado")
     return item
 
 
-@app.delete("/api/v1/meal-plans/{plan_id}", status_code=204)
-def delete_meal_plan(plan_id: str):
-    if not service.delete_meal_plan(plan_id):
-        raise HTTPException(status_code=404, detail="Meal plan not found")
+@app.delete("/api/v1/planes-comida/{id_plan}", status_code=204)
+def eliminar_plan_comida(id_plan: str):
+    if not service.delete_meal_plan(id_plan):
+        raise HTTPException(status_code=404, detail="Plan de comida no encontrado")
 
 
-@app.post("/api/v1/meal-plans/{plan_id}/entries", status_code=201)
-def add_entry(plan_id: str, body: MealPlanEntryCreate):
+@app.post("/api/v1/planes-comida/{id_plan}/entradas", status_code=201)
+def agregar_entrada(id_plan: str, body: EntradaPlanCrear):
     try:
-        entry = service.add_entry(plan_id, body.model_dump())
+        entrada = service.add_entry(id_plan, body.model_dump())
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
-    if not entry:
-        raise HTTPException(status_code=404, detail="Meal plan not found")
-    return entry
+    if not entrada:
+        raise HTTPException(status_code=404, detail="Plan de comida no encontrado")
+    return entrada
 
 
-@app.get("/api/v1/meal-plans/{plan_id}/meal-list")
-def get_meal_list(plan_id: str):
-    plan = service.get_meal_plan(plan_id)
+@app.get("/api/v1/planes-comida/{id_plan}/lista-comidas")
+def obtener_lista_comidas(id_plan: str):
+    plan = service.get_meal_plan(id_plan)
     if not plan:
-        raise HTTPException(status_code=404, detail="Meal plan not found")
-    return service.get_meal_list(plan_id)
+        raise HTTPException(status_code=404, detail="Plan de comida no encontrado")
+    return service.get_meal_list(id_plan)
 
 
-@app.get("/api/v1/meal-plans/{plan_id}/grocery-list")
-def get_grocery_list(plan_id: str):
-    plan = service.get_meal_plan(plan_id)
+@app.get("/api/v1/planes-comida/{id_plan}/lista-compras")
+def obtener_lista_compras(id_plan: str):
+    plan = service.get_meal_plan(id_plan)
     if not plan:
-        raise HTTPException(status_code=404, detail="Meal plan not found")
-    return service.get_grocery_list(plan_id)
+        raise HTTPException(status_code=404, detail="Plan de comida no encontrado")
+    return service.get_grocery_list(id_plan)
 
 
 handler = Mangum(app, lifespan="off")

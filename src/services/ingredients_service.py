@@ -5,35 +5,35 @@ class IngredientsService:
     def __init__(self):
         self.repo = IngredientsRepository()
 
-    def list_ingredients(self, nutritional_group: str = None) -> list[dict]:
-        items = self.repo.list_all(nutritional_group)
+    def list_ingredients(self, grupo_nutricional: str = None) -> list[dict]:
+        items = self.repo.list_all(grupo_nutricional)
         return [self._format(item) for item in items]
 
-    def get_ingredient(self, ingredient_id: str) -> dict | None:
-        item = self.repo.get_by_id(ingredient_id)
+    def get_ingredient(self, id_ingrediente: str) -> dict | None:
+        item = self.repo.get_by_id(id_ingrediente)
         return self._format(item) if item else None
 
     def create_ingredient(self, data: dict) -> dict:
         item = self.repo.create(data)
         return self._format(item)
 
-    def update_ingredient(self, ingredient_id: str, data: dict) -> dict | None:
-        item = self.repo.update(ingredient_id, data)
+    def update_ingredient(self, id_ingrediente: str, data: dict) -> dict | None:
+        item = self.repo.update(id_ingrediente, data)
         return self._format(item) if item else None
 
-    def delete_ingredient(self, ingredient_id: str) -> bool:
-        return self.repo.delete(ingredient_id)
+    def delete_ingredient(self, id_ingrediente: str) -> bool:
+        return self.repo.delete(id_ingrediente)
 
-    def get_batch(self, ingredient_ids: list[str]) -> dict[str, dict]:
-        items = self.repo.get_batch(ingredient_ids)
+    def get_batch(self, ids_ingrediente: list[str]) -> dict[str, dict]:
+        items = self.repo.get_batch(ids_ingrediente)
         return {item['id']: self._format(item) for item in items}
 
     def _format(self, item: dict) -> dict:
         return {
             'id': item['id'],
-            'name': item['name'],
-            'nutritional_group': item['nutritional_group'],
-            'unit': item['unit'],
-            'created_at': item.get('created_at'),
-            'updated_at': item.get('updated_at'),
+            'nombre': item['nombre'],
+            'grupo_nutricional': item['grupo_nutricional'],
+            'unidad': item['unidad'],
+            'creado_en': item.get('creado_en'),
+            'actualizado_en': item.get('actualizado_en'),
         }

@@ -5,9 +5,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from handlers.ingredients import app as ingredients_app
-from handlers.recipes import app as recipes_app
-from handlers.meal_plans import app as meal_plans_app
+from src.handlers.ingredients import app as ingredients_app
+from src.handlers.recipes import app as recipes_app
+from src.handlers.meal_plans import app as meal_plans_app
 
 app = FastAPI(title="Recipe Manager Local Server")
 

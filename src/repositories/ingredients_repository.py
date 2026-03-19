@@ -6,74 +6,74 @@ from repositories.base_repository import BaseRepository
 
 
 class IngredientsRepository(BaseRepository):
-    def list_all(self, nutritional_group: str = None) -> list[dict]:
-        if nutritional_group:
+    def list_all(self, grupo_nutricional: str = None) -> list[dict]:
+        if grupo_nutricional:
             response = self.table.query(
                 IndexName='GSI2',
-                KeyConditionExpression=Key('GSI2PK').eq(nutritional_group),
+                KeyConditionExpression=Key('GSI2PK').eq(grupo_nutricional),
             )
         else:
             response = self.table.query(
                 IndexName='GSI1',
-                KeyConditionExpression=Key('GSI1PK').eq('INGREDIENT'),
+                KeyConditionExpression=Key('GSI1PK').eq('INGREDIENTE'),
             )
         return response.get('Items', [])
 
-    def get_by_id(self, ingredient_id: str) -> dict | None:
+    def get_by_id(self, id_ingrediente: str) -> dict | None:
         response = self.table.get_item(
-            Key={'PK': f'INGREDIENT#{ingredient_id}', 'SK': 'METADATA'}
+            Key={'PK': f'INGREDIENTE#{id_ingrediente}', 'SK': 'METADATA'}
         )
         return response.get('Item')
 
     def create(self, data: dict) -> dict:
-        ingredient_id = str(uuid.uuid4())
+        id_ingrediente = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
         item = {
-            'PK': f'INGREDIENT#{ingredient_id}',
+            'PK': f'INGREDIENTE#{id_ingrediente}',
             'SK': 'METADATA',
-            'GSI1PK': 'INGREDIENT',
+            'GSI1PK': 'INGREDIENTE',
             'GSI1SK': now,
-            'GSI2PK': data['nutritional_group'],
-            'GSI2SK': data['name'],
-            'id': ingredient_id,
-            'name': data['name'],
-            'nutritional_group': data['nutritional_group'],
-            'unit': data['unit'],
-            'created_at': now,
-            'updated_at': now,
+            'GSI2PK': data['grupo_nutricional'],
+            'GSI2SK': data['nombre'],
+            'id': id_ingrediente,
+            'nombre': data['nombre'],
+            'grupo_nutricional': data['grupo_nutricional'],
+            'unidad': data['unidad'],
+            'creado_en': now,
+            'actualizado_en': now,
         }
         self.table.put_item(Item=item)
         return item
 
-    def update(self, ingredient_id: str, data: dict) -> dict | None:
-        existing = self.get_by_id(ingredient_id)
+    def update(self, id_ingrediente: str, data: dict) -> dict | None:
+        existing = self.get_by_id(id_ingrediente)
         if not existing:
             return None
         now = datetime.now(timezone.utc).isoformat()
-        update_expressions = ['#updated_at = :updated_at']
-        expression_values = {':updated_at': now}
-        expression_names = {'#updated_at': 'updated_at'}
+        update_expressions = ['#actualizado_en = :actualizado_en']
+        expression_values = {':actualizado_en': now}
+        expression_names = {'#actualizado_en': 'actualizado_en'}
 
-        if 'name' in data:
-            update_expressions.append('#name = :name')
-            expression_values[':name'] = data['name']
-            expression_names['#name'] = 'name'
+        if 'nombre' in data:
+            update_expressions.append('#nombre = :nombre')
+            expression_values[':nombre'] = data['nombre']
+            expression_names['#nombre'] = 'nombre'
             update_expressions.append('GSI2SK = :gsi2sk')
-            expression_values[':gsi2sk'] = data['name']
+            expression_values[':gsi2sk'] = data['nombre']
 
-        if 'nutritional_group' in data:
-            update_expressions.append('nutritional_group = :nutritional_group')
-            expression_values[':nutritional_group'] = data['nutritional_group']
+        if 'grupo_nutricional' in data:
+            update_expressions.append('grupo_nutricional = :grupo_nutricional')
+            expression_values[':grupo_nutricional'] = data['grupo_nutricional']
             update_expressions.append('GSI2PK = :gsi2pk')
-            expression_values[':gsi2pk'] = data['nutritional_group']
+            expression_values[':gsi2pk'] = data['grupo_nutricional']
 
-        if 'unit' in data:
-            update_expressions.append('#unit = :unit')
-            expression_values[':unit'] = data['unit']
-            expression_names['#unit'] = 'unit'
+        if 'unidad' in data:
+            update_expressions.append('#unidad = :unidad')
+            expression_values[':unidad'] = data['unidad']
+            expression_names['#unidad'] = 'unidad'
 
         response = self.table.update_item(
-            Key={'PK': f'INGREDIENT#{ingredient_id}', 'SK': 'METADATA'},
+            Key={'PK': f'INGREDIENTE#{id_ingrediente}', 'SK': 'METADATA'},
             UpdateExpression='SET ' + ', '.join(update_expressions),
             ExpressionAttributeValues=expression_values,
             ExpressionAttributeNames=expression_names if expression_names else None,
@@ -81,20 +81,19 @@ class IngredientsRepository(BaseRepository):
         )
         return response['Attributes']
 
-    def delete(self, ingredient_id: str) -> bool:
-        existing = self.get_by_id(ingredient_id)
+    def delete(self, id_ingrediente: str) -> bool:
+        existing = self.get_by_id(id_ingrediente)
         if not existing:
             return False
         self.table.delete_item(
-            Key={'PK': f'INGREDIENT#{ingredient_id}', 'SK': 'METADATA'}
+            Key={'PK': f'INGREDIENTE#{id_ingrediente}', 'SK': 'METADATA'}
         )
         return True
 
-    def get_batch(self, ingredient_ids: list[str]) -> list[dict]:
-        if not ingredient_ids:
+    def get_batch(self, ids_ingrediente: list[str]) -> list[dict]:
+        if not ids_ingrediente:
             return []
-        # DynamoDB batch_get_item supports up to 100 items
-        keys = [{'PK': f'INGREDIENT#{iid}', 'SK': 'METADATA'} for iid in ingredient_ids]
+        keys = [{'PK': f'INGREDIENTE#{iid}', 'SK': 'METADATA'} for iid in ids_ingrediente]
         results = []
         for i in range(0, len(keys), 100):
             chunk = keys[i:i+100]
