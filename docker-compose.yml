@@ -7,10 +7,10 @@ services:
       - "8000:8000"
     command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8000 || exit 1"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8000 && echo -e 'GET / HTTP/1.0\r\n\r\n' >&3 && cat <&3 | grep -q 'HTTP' && exec 3>&-"]
       interval: 5s
       timeout: 3s
-      retries: 5
+      retries: 10
 
   dynamodb-init:
     image: amazon/aws-cli:latest
