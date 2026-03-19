@@ -19,11 +19,11 @@ Python Lambda handlers + FastAPI local server, behind AWS API Gateway.
 
 ### Setup
 ```bash
+# Activate the shared virtual environment (from the project root)
+source ../venv/bin/activate
+
 # Start DynamoDB Local
 docker-compose up -d
-
-# Install dependencies
-pip install -r requirements-dev.txt
 
 # Copy env file
 cp .env.example .env
@@ -34,31 +34,52 @@ uvicorn local_server:app --reload --port 3001
 
 API available at http://localhost:3001/api/v1
 
+### Running tests
+
+Tests use `pytest` and mock all DynamoDB calls, so **no running services are needed**.
+
+```bash
+# From the backend/ directory, with the venv activated:
+pytest
+
+# Verbose output
+pytest -v
+
+# Single test file
+pytest tests/test_ingredients_service.py -v
+```
+
+**Test structure:**
+- `tests/test_ingredients_service.py` — unit tests for `IngredientsService` (repositories mocked)
+- `tests/test_recipes_service.py` — unit tests for `RecipesService` (repositories mocked)
+- `tests/test_meal_plans_service.py` — unit tests for `MealPlansService` (repositories + sub-services mocked)
+- `tests/test_api.py` — HTTP-layer integration tests for all routes (services mocked via `monkeypatch`)
+
 ### API Endpoints
 
-**Ingredients**
-- `GET    /api/v1/ingredients` — list all (optional `?nutritional_group=X`)
-- `POST   /api/v1/ingredients` — create
-- `GET    /api/v1/ingredients/{id}` — get one
-- `PUT    /api/v1/ingredients/{id}` — update
-- `DELETE /api/v1/ingredients/{id}` — delete
+**Ingredientes**
+- `GET    /api/v1/ingredientes` — listar todos (opcional `?grupo_nutricional=X`)
+- `POST   /api/v1/ingredientes` — crear
+- `GET    /api/v1/ingredientes/{id}` — obtener uno
+- `PUT    /api/v1/ingredientes/{id}` — actualizar
+- `DELETE /api/v1/ingredientes/{id}` — eliminar
 
-**Recipes**
-- `GET    /api/v1/recipes` — list all (optional `?ingredient_id=X&nutritional_group=Y`)
-- `POST   /api/v1/recipes` — create (with ingredients array)
-- `GET    /api/v1/recipes/{id}` — get one (populated)
-- `PUT    /api/v1/recipes/{id}` — update
-- `DELETE /api/v1/recipes/{id}` — delete
+**Recetas**
+- `GET    /api/v1/recetas` — listar todas (opcional `?id_ingrediente=X&grupo_nutricional=Y`)
+- `POST   /api/v1/recetas` — crear (con array de ingredientes)
+- `GET    /api/v1/recetas/{id}` — obtener una (con ingredientes poblados)
+- `PUT    /api/v1/recetas/{id}` — actualizar
+- `DELETE /api/v1/recetas/{id}` — eliminar
 
-**Meal Plans**
-- `GET    /api/v1/meal-plans` — list all
-- `POST   /api/v1/meal-plans` — create
-- `GET    /api/v1/meal-plans/{id}` — get one (with entries)
-- `PUT    /api/v1/meal-plans/{id}` — update
-- `DELETE /api/v1/meal-plans/{id}` — delete
-- `POST   /api/v1/meal-plans/{id}/entries` — add entry
-- `GET    /api/v1/meal-plans/{id}/meal-list` — ordered meal list
-- `GET    /api/v1/meal-plans/{id}/grocery-list` — grocery list `{ required, optional }`
+**Planes de comida**
+- `GET    /api/v1/planes-comida` — listar todos
+- `POST   /api/v1/planes-comida` — crear
+- `GET    /api/v1/planes-comida/{id}` — obtener uno (con entradas)
+- `PUT    /api/v1/planes-comida/{id}` — actualizar
+- `DELETE /api/v1/planes-comida/{id}` — eliminar
+- `POST   /api/v1/planes-comida/{id}/entradas` — agregar entrada
+- `GET    /api/v1/planes-comida/{id}/lista-comidas` — lista de comidas ordenada
+- `GET    /api/v1/planes-comida/{id}/lista-compras` — lista de compras `{ requeridos, opcionales }`
 
 ## Deployment
 
