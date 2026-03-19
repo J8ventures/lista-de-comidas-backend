@@ -38,15 +38,16 @@ API available at http://localhost:3001/api/v1
 
 Tests use `pytest` and mock all DynamoDB calls, so **no running services are needed**.
 
+Coverage for `src/` is measured automatically on every run (configured in `pytest.ini`).
+
 ```bash
 # From the backend/ directory, with the venv activated:
-pytest
+pytest                               # run all tests + coverage summary in terminal
+pytest -v                            # verbose test names
+pytest tests/test_ingredients_service.py -v   # single file
 
-# Verbose output
-pytest -v
-
-# Single test file
-pytest tests/test_ingredients_service.py -v
+# Open the HTML coverage report in a browser
+xdg-open htmlcov/index.html
 ```
 
 **Test structure:**
