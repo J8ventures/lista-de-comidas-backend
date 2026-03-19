@@ -1,4 +1,5 @@
 from abc import ABC
+
 from utils.dynamodb import get_table
 
 

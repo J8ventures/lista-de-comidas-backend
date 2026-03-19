@@ -26,14 +26,14 @@ class IngredientsService:
 
     def get_batch(self, ids_ingrediente: list[str]) -> dict[str, dict]:
         items = self.repo.get_batch(ids_ingrediente)
-        return {item['id']: self._format(item) for item in items}
+        return {item["id"]: self._format(item) for item in items}
 
     def _format(self, item: dict) -> dict:
         return {
-            'id': item['id'],
-            'nombre': item['nombre'],
-            'grupo_nutricional': item['grupo_nutricional'],
-            'unidad': item['unidad'],
-            'creado_en': item.get('creado_en'),
-            'actualizado_en': item.get('actualizado_en'),
+            "id": item["id"],
+            "nombre": item["nombre"],
+            "grupo_nutricional": item["grupo_nutricional"],
+            "unidad": item["unidad"],
+            "creado_en": item.get("creado_en"),
+            "actualizado_en": item.get("actualizado_en"),
         }

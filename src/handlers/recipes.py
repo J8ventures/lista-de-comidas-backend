@@ -1,11 +1,13 @@
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import sys
 
-from typing import Optional
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+
 from fastapi import FastAPI, HTTPException, Query
 from mangum import Mangum
-from models.types import RecetaCrear, RecetaActualizar
+
+from models.types import RecetaActualizar, RecetaCrear
 from services.recipes_service import RecipesService
 
 app = FastAPI(title="Recetas API")
@@ -14,8 +16,8 @@ service = RecipesService()
 
 @app.get("/api/v1/recetas")
 def listar_recetas(
-    id_ingrediente: Optional[str] = Query(None),
-    grupo_nutricional: Optional[str] = Query(None),
+    id_ingrediente: str | None = Query(None),
+    grupo_nutricional: str | None = Query(None),
 ):
     return service.list_recipes(id_ingrediente, grupo_nutricional)
 
