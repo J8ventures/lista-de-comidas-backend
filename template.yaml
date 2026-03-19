@@ -1,0 +1,186 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Recipe Manager API
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        DYNAMODB_TABLE_NAME: !Ref RecipeManagerTable
+
+Resources:
+  RecipeManagerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: RecipeManagerTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
+          AttributeType: S
+        - AttributeName: GSI2PK
+          AttributeType: S
+        - AttributeName: GSI2SK
+          AttributeType: S
+        - AttributeName: GSI3PK
+          AttributeType: S
+        - AttributeName: GSI3SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI1
+          KeySchema:
+            - AttributeName: GSI1PK
+              KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI2
+          KeySchema:
+            - AttributeName: GSI2PK
+              KeyType: HASH
+            - AttributeName: GSI2SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI3
+          KeySchema:
+            - AttributeName: GSI3PK
+              KeyType: HASH
+            - AttributeName: GSI3SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  IngredientsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers/ingredients.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RecipeManagerTable
+      Events:
+        ListIngredients:
+          Type: Api
+          Properties:
+            Path: /api/v1/ingredients
+            Method: GET
+        CreateIngredient:
+          Type: Api
+          Properties:
+            Path: /api/v1/ingredients
+            Method: POST
+        GetIngredient:
+          Type: Api
+          Properties:
+            Path: /api/v1/ingredients/{ingredient_id}
+            Method: GET
+        UpdateIngredient:
+          Type: Api
+          Properties:
+            Path: /api/v1/ingredients/{ingredient_id}
+            Method: PUT
+        DeleteIngredient:
+          Type: Api
+          Properties:
+            Path: /api/v1/ingredients/{ingredient_id}
+            Method: DELETE
+
+  RecipesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers/recipes.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RecipeManagerTable
+      Events:
+        ListRecipes:
+          Type: Api
+          Properties:
+            Path: /api/v1/recipes
+            Method: GET
+        CreateRecipe:
+          Type: Api
+          Properties:
+            Path: /api/v1/recipes
+            Method: POST
+        GetRecipe:
+          Type: Api
+          Properties:
+            Path: /api/v1/recipes/{recipe_id}
+            Method: GET
+        UpdateRecipe:
+          Type: Api
+          Properties:
+            Path: /api/v1/recipes/{recipe_id}
+            Method: PUT
+        DeleteRecipe:
+          Type: Api
+          Properties:
+            Path: /api/v1/recipes/{recipe_id}
+            Method: DELETE
+
+  MealPlansFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers/meal_plans.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref RecipeManagerTable
+      Events:
+        ListMealPlans:
+          Type: Api
+          Properties:
+            Path: /api/v1/meal-plans
+            Method: GET
+        CreateMealPlan:
+          Type: Api
+          Properties:
+            Path: /api/v1/meal-plans
+            Method: POST
+        GetMealPlan:
+          Type: Api
+          Properties:
+            Path: /api/v1/meal-plans/{plan_id}
+            Method: GET
+        UpdateMealPlan:
+          Type: Api
+          Properties:
+            Path: /api/v1/meal-plans/{plan_id}
+            Method: PUT
+        DeleteMealPlan:
+          Type: Api
+          Properties:
+            Path: /api/v1/meal-plans/{plan_id}
+            Method: DELETE
+        AddEntry:
+          Type: Api
+          Properties:
+            Path: /api/v1/meal-plans/{plan_id}/entries
+            Method: POST
+        GetMealList:
+          Type: Api
+          Properties:
+            Path: /api/v1/meal-plans/{plan_id}/meal-list
+            Method: GET
+        GetGroceryList:
+          Type: Api
+          Properties:
+            Path: /api/v1/meal-plans/{plan_id}/grocery-list
+            Method: GET
