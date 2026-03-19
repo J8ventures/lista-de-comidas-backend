@@ -1,10 +1,12 @@
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi import FastAPI, HTTPException
 from mangum import Mangum
-from models.types import PlanComidaCrear, PlanComidaActualizar, EntradaPlanCrear
+
+from models.types import EntradaPlanCrear, PlanComidaActualizar, PlanComidaCrear
 from services.meal_plans_service import MealPlansService
 
 app = FastAPI(title="Planes de Comida API")
@@ -49,7 +51,7 @@ def agregar_entrada(id_plan: str, body: EntradaPlanCrear):
     try:
         entrada = service.add_entry(id_plan, body.model_dump())
     except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e))
+        raise HTTPException(status_code=422, detail=str(e)) from e
     if not entrada:
         raise HTTPException(status_code=404, detail="Plan de comida no encontrado")
     return entrada

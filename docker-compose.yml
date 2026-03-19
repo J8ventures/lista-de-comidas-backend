@@ -59,3 +59,5 @@ services:
         condition: service_healthy
       dynamodb-init:
         condition: service_completed_successfully
+    stdin_open: true
+    tty: true

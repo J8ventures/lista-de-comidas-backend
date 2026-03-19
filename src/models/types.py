@@ -1,12 +1,21 @@
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
-GrupoNutricional = Literal['PROTEINAS', 'CARBOHIDRATOS', 'VERDURAS', 'FRUTAS', 'LACTEOS', 'GRASAS', 'LEGUMBRES', 'CEREALES', 'OTRO']
-RolIngrediente = Literal['requerido', 'reemplazable', 'opcional']
-TipoComida = Literal['desayuno', 'almuerzo', 'cena', 'merienda']
-TipoPlan = Literal['semanal', 'quincenal']
+GrupoNutricional = Literal[
+    "PROTEINAS",
+    "CARBOHIDRATOS",
+    "VERDURAS",
+    "FRUTAS",
+    "LACTEOS",
+    "GRASAS",
+    "LEGUMBRES",
+    "CEREALES",
+    "OTRO",
+]
+RolIngrediente = Literal["requerido", "reemplazable", "opcional"]
+TipoComida = Literal["desayuno", "almuerzo", "cena", "merienda"]
+TipoPlan = Literal["semanal", "quincenal"]
 
 
 # Modelos Pydantic para validación de request/response
@@ -31,9 +40,9 @@ class IngredienteCrear(BaseModel):
 
 
 class IngredienteActualizar(BaseModel):
-    nombre: Optional[str] = None
-    grupo_nutricional: Optional[GrupoNutricional] = None
-    unidad: Optional[str] = None
+    nombre: str | None = None
+    grupo_nutricional: GrupoNutricional | None = None
+    unidad: str | None = None
 
 
 class RecetaCrear(BaseModel):
@@ -46,19 +55,21 @@ class RecetaCrear(BaseModel):
 
 
 class RecetaActualizar(BaseModel):
-    nombre: Optional[str] = None
-    descripcion: Optional[str] = None
-    porciones: Optional[int] = None
-    tiempo_preparacion: Optional[int] = None
-    tiempo_coccion: Optional[int] = None
-    ingredientes: Optional[list[IngredienteRecetaModelo]] = None
+    nombre: str | None = None
+    descripcion: str | None = None
+    porciones: int | None = None
+    tiempo_preparacion: int | None = None
+    tiempo_coccion: int | None = None
+    ingredientes: list[IngredienteRecetaModelo] | None = None
 
 
 class EntradaPlanCrear(BaseModel):
     fecha: str  # formato ISO YYYY-MM-DD
     tipo_comida: TipoComida
     id_receta: str
-    ingredientes_seleccionados: dict[str, str] = Field(default_factory=dict)  # id_ingrediente_reemplazable -> id_ingrediente_elegido
+    ingredientes_seleccionados: dict[str, str] = Field(
+        default_factory=dict
+    )  # id_ingrediente_reemplazable -> id_ingrediente_elegido
 
 
 class PlanComidaCrear(BaseModel):
@@ -70,7 +81,7 @@ class PlanComidaCrear(BaseModel):
 
 
 class PlanComidaActualizar(BaseModel):
-    nombre: Optional[str] = None
-    tipo: Optional[TipoPlan] = None
-    fecha_inicio: Optional[str] = None
-    fecha_fin: Optional[str] = None
+    nombre: str | None = None
+    tipo: TipoPlan | None = None
+    fecha_inicio: str | None = None
+    fecha_fin: str | None = None
