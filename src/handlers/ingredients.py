@@ -12,7 +12,9 @@ from models.types import IngredienteActualizar, IngredienteCrear
 from services.ingredients_service import IngredientsService
 
 app = FastAPI(title="Ingredientes API")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+)
 service = IngredientsService()
 
 

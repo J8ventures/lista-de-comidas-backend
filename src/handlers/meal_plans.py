@@ -11,7 +11,9 @@ from models.types import EntradaPlanCrear, PlanComidaActualizar, PlanComidaCrear
 from services.meal_plans_service import MealPlansService
 
 app = FastAPI(title="Planes de Comida API")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+)
 service = MealPlansService()
 
 
