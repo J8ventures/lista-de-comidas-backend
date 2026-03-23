@@ -4,12 +4,16 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from models.types import EntradaPlanCrear, PlanComidaActualizar, PlanComidaCrear
 from services.meal_plans_service import MealPlansService
 
 app = FastAPI(title="Planes de Comida API")
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+)
 service = MealPlansService()
 
 

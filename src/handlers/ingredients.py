@@ -5,12 +5,16 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from models.types import IngredienteActualizar, IngredienteCrear
 from services.ingredients_service import IngredientsService
 
 app = FastAPI(title="Ingredientes API")
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
+)
 service = IngredientsService()
 
 
