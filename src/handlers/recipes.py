@@ -5,12 +5,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from models.types import RecetaActualizar, RecetaCrear
 from services.recipes_service import RecipesService
 
 app = FastAPI(title="Recetas API")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 service = RecipesService()
 
 
